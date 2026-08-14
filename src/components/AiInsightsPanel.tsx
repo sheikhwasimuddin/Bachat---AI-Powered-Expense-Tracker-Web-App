@@ -13,6 +13,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { AiInsightResponse, Expense, Budget, Category } from '../types';
+import { buildApiUrl } from '../lib/api';
 
 interface AiInsightsPanelProps {
   insights: AiInsightResponse | null;
@@ -46,7 +47,7 @@ export const AiInsightsPanel: React.FC<AiInsightsPanelProps> = ({
     setAdvisorAnswer(null);
 
     try {
-      const response = await fetch('/api/gemini/advisor', {
+      const response = await fetch(buildApiUrl('/api/gemini/advisor'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

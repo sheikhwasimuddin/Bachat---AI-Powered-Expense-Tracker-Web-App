@@ -10,6 +10,20 @@ dotenv.config();
 const app = express();
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
 
+const configuredAppUrl = (process.env.APP_URL || '').trim();
+const normalizedAppUrl = configuredAppUrl
+  ? configuredAppUrl.startsWith('http')
+    ? configuredAppUrl
+    : `https://${configuredAppUrl}`
+  : '';
+
+const allowedOrigins = new Set([
+  normalizedAppUrl,
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+].filter(Boolean));
+
 function startServer(portNumber: number) {
   const server = app.listen(portNumber, '0.0.0.0', () => {
     console.log(`Expense Tracker server running on http://localhost:${portNumber}`);
@@ -28,6 +42,25 @@ function startServer(portNumber: number) {
 }
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  const requestOrigin = req.headers.origin as string | undefined;
+
+  if (requestOrigin && allowedOrigins.has(requestOrigin)) {
+    res.header('Access-Control-Allow-Origin', requestOrigin);
+  }
+
+  res.header('Vary', 'Origin');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
 
 const transientGeminiWarnings = new Set<string>();
 

@@ -16,5 +16,6 @@ View your app in AI Studio: https://ai.studio/apps/850f2f52-bd44-4097-aec8-362f0
 1. Install dependencies:
    `npm install`
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. If frontend and backend are deployed separately, set `VITE_API_BASE_URL` in frontend env to your backend URL (example: `https://your-backend.onrender.com`)
 3. Run the app:
    `npm run dev`

@@ -15,6 +15,7 @@ import {
 import confetti from 'canvas-confetti';
 import { Category, AiParsedExpense } from '../types';
 import { IconRenderer } from './IconRenderer';
+import { buildApiUrl } from '../lib/api';
 
 interface AiQuickAddProps {
   categories: Category[];
@@ -53,7 +54,7 @@ export const AiQuickAdd: React.FC<AiQuickAddProps> = ({
     setErrorMessage(null);
 
     try {
-      const response = await fetch('/api/gemini/parse-expense', {
+      const response = await fetch(buildApiUrl('/api/gemini/parse-expense'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

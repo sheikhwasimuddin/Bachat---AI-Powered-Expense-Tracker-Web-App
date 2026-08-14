@@ -14,6 +14,7 @@ import { Expense, Category, Budget, AiInsightResponse } from './types';
 import { Loader2 } from 'lucide-react';
 import { AuthPage } from './components/AuthPage';
 import { HomePage } from './components/HomePage';
+import { buildApiUrl } from './lib/api';
 
 export default function App() {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
@@ -173,7 +174,7 @@ export default function App() {
 
     setIsLoadingInsights(true);
     try {
-      const response = await fetch('/api/gemini/insights', {
+      const response = await fetch(buildApiUrl('/api/gemini/insights'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
