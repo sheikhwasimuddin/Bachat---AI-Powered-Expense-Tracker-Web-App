@@ -26,7 +26,6 @@ const STORAGE_KEYS = {
   EXPENSES: 'ai_expense_tracker_expenses_v1',
   CATEGORIES: 'ai_expense_tracker_categories_v1',
   BUDGETS: 'ai_expense_tracker_budgets_v1',
-  GUEST_USER: 'ai_expense_tracker_guest_user_v1',
   CURRENCY: 'ai_expense_tracker_currency_v1',
   THEME: 'ai_expense_tracker_theme_v1',
 };
@@ -34,36 +33,12 @@ const STORAGE_KEYS = {
 // Database Service Layer abstraction that transparently switches between Supabase and LocalStorage
 export class DataService {
   // Get current user
-  static async getCurrentUser(): Promise<User | { id: string; email: string; user_metadata: { name: string } } | null> {
+  static async getCurrentUser(): Promise<User | null> {
     if (isSupabaseConfigured && supabase) {
       const { data: { user } } = await supabase.auth.getUser();
       return user;
     }
-    // Guest user from local storage
-    const stored = localStorage.getItem(STORAGE_KEYS.GUEST_USER);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch (e) {
-        // ignore
-      }
-    }
-    return {
-      id: 'guest-user-123',
-      email: 'demo@expensetracker.ai',
-      user_metadata: { name: 'Demo Explorer' }
-    };
-  }
-
-  // Set guest user profile
-  static setGuestUser(name: string, email: string) {
-    const user = {
-      id: 'guest-user-123',
-      email: email || 'demo@expensetracker.ai',
-      user_metadata: { name: name || 'Demo Explorer' }
-    };
-    localStorage.setItem(STORAGE_KEYS.GUEST_USER, JSON.stringify(user));
-    return user;
+    return null;
   }
 
   // CATEGORIES
@@ -297,7 +272,11 @@ export class DataService {
         .from('budgets')
         .select('*');
       if (!error && data && data.length > 0) {
-        return data.map((b: any) => ({ ...b, monthly_limit: Number(b.monthly_limit) }));
+        return data.map((b: any) => ({
+          ...b,
+          monthly_limit: Number(b.monthly_limit),
+          threshold_percentage: Number(b.threshold_percentage ?? 80),
+        }));
       }
     }
 
@@ -317,17 +296,23 @@ export class DataService {
     return DEFAULT_BUDGETS;
   }
 
-  static async setBudget(categoryId: string, monthlyLimit: number, userId?: string): Promise<Budget> {
+  static async setBudget(categoryId: string, monthlyLimit: number, thresholdPercentage: number, userId?: string): Promise<Budget> {
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase
         .from('budgets')
         .upsert(
-          { category_id: categoryId, monthly_limit: monthlyLimit, user_id: userId },
+          { category_id: categoryId, monthly_limit: monthlyLimit, threshold_percentage: thresholdPercentage, user_id: userId },
           { onConflict: 'user_id,category_id' }
         )
         .select()
         .single();
-      if (!error && data) return { ...data, monthly_limit: Number(data.monthly_limit) };
+      if (!error && data) {
+        return {
+          ...data,
+          monthly_limit: Number(data.monthly_limit),
+          threshold_percentage: Number(data.threshold_percentage ?? thresholdPercentage),
+        };
+      }
     }
 
     const budgets = await this.getBudgets(userId);
@@ -338,6 +323,7 @@ export class DataService {
       user_id: userId || null,
       category_id: categoryId,
       monthly_limit: Number(monthlyLimit),
+      threshold_percentage: Number.isFinite(thresholdPercentage) ? Math.min(100, Math.max(1, Number(thresholdPercentage))) : 80,
     };
     if (index >= 0) {
       updated = budgets.map((b, i) => i === index ? budgetObj : b);
@@ -349,29 +335,7 @@ export class DataService {
   }
 
   static clearDemoDataIfPresent() {
-    const storedExpenses = localStorage.getItem(STORAGE_KEYS.EXPENSES);
-    if (storedExpenses) {
-      try {
-        const parsed = JSON.parse(storedExpenses);
-        if (Array.isArray(parsed) && parsed.some((item: any) => String(item.id || '').startsWith('exp-'))) {
-          localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify([]));
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-
-    const storedBudgets = localStorage.getItem(STORAGE_KEYS.BUDGETS);
-    if (storedBudgets) {
-      try {
-        const parsed = JSON.parse(storedBudgets);
-        if (Array.isArray(parsed) && parsed.some((item: any) => String(item.id || '').startsWith('b-'))) {
-          localStorage.setItem(STORAGE_KEYS.BUDGETS, JSON.stringify([]));
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
+    // Intentionally kept as a no-op to avoid erasing user-created local data.
   }
 
   // RESET ALL DATA TO DEMO PRESETS

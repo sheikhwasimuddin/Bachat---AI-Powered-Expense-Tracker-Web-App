@@ -10,7 +10,7 @@ interface CategoryManagerModalProps {
   budgets: Budget[];
   currencySymbol: string;
   onSaveCategory: (category: Omit<Category, 'id'> & { id?: string }) => Promise<void>;
-  onSetBudget: (categoryId: string, monthlyLimit: number) => Promise<void>;
+  onSetBudget: (categoryId: string, monthlyLimit: number, thresholdPercentage: number) => Promise<void>;
 }
 
 export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
@@ -33,15 +33,19 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
 
   // Budget Limits State
   const [editingBudgets, setEditingBudgets] = useState<Record<string, string>>({});
+  const [editingThresholds, setEditingThresholds] = useState<Record<string, string>>({});
   const [savingBudgetId, setSavingBudgetId] = useState<string | null>(null);
 
   React.useEffect(() => {
     const initial: Record<string, string> = {};
+    const initialThresholds: Record<string, string> = {};
     categories.forEach(c => {
       const b = budgets.find(item => item.category_id === c.id);
       initial[c.id] = b ? String(b.monthly_limit) : '';
+      initialThresholds[c.id] = String(b?.threshold_percentage ?? 80);
     });
     setEditingBudgets(initial);
+    setEditingThresholds(initialThresholds);
   }, [categories, budgets, isOpen]);
 
   if (!isOpen) return null;
@@ -73,9 +77,11 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
 
   const handleSaveBudget = async (categoryId: string) => {
     const val = parseFloat(editingBudgets[categoryId] || '0');
+    const thresholdRaw = parseFloat(editingThresholds[categoryId] || '80');
+    const threshold = Number.isFinite(thresholdRaw) ? Math.min(100, Math.max(1, thresholdRaw)) : 80;
     setSavingBudgetId(categoryId);
     try {
-      await onSetBudget(categoryId, isNaN(val) ? 0 : val);
+      await onSetBudget(categoryId, isNaN(val) ? 0 : val, threshold);
     } catch (err: any) {
       console.error(err);
     } finally {
@@ -174,6 +180,20 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({
                             onBlur={() => handleSaveBudget(cat.id)}
                             className="w-full pl-6 pr-2 py-1.5 rounded-xl border border-[#E5E0D8] dark:border-[#38332F] bg-[#FDFCFB] dark:bg-[#1E1C1A] text-[#2D2D2A] dark:text-[#F3EFEA] font-medium focus:ring-1 focus:ring-[#7A8471]"
                           />
+                        </div>
+
+                        <div className="relative w-20">
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            placeholder="80"
+                            value={editingThresholds[cat.id] || '80'}
+                            onChange={(e) => setEditingThresholds(prev => ({ ...prev, [cat.id]: e.target.value }))}
+                            onBlur={() => handleSaveBudget(cat.id)}
+                            className="w-full pl-2 pr-6 py-1.5 rounded-xl border border-[#E5E0D8] dark:border-[#38332F] bg-[#FDFCFB] dark:bg-[#1E1C1A] text-[#2D2D2A] dark:text-[#F3EFEA] font-medium focus:ring-1 focus:ring-[#7A8471]"
+                          />
+                          <span className="absolute right-2 top-2 text-[#8A8A82] font-semibold">%</span>
                         </div>
 
                         <button

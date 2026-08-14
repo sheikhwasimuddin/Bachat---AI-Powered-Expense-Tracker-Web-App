@@ -23,6 +23,7 @@ export interface Budget {
   user_id?: string | null;
   category_id: string;
   monthly_limit: number;
+  threshold_percentage?: number;
   created_at?: string;
 }
 

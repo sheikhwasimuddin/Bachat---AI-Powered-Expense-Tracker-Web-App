@@ -101,6 +101,8 @@ export const SpendingCharts: React.FC<SpendingChartsProps> = ({
       
       const budgetObj = budgets.find(b => b.category_id === cat.id);
       const limit = budgetObj ? Number(budgetObj.monthly_limit) : 0;
+      const thresholdPercentage = budgetObj ? Number(budgetObj.threshold_percentage ?? 80) : 80;
+      const thresholdAmount = limit > 0 ? (limit * thresholdPercentage) / 100 : 0;
       const percentage = limit > 0 ? Math.round((spent / limit) * 100) : 0;
 
       return {
@@ -110,9 +112,11 @@ export const SpendingCharts: React.FC<SpendingChartsProps> = ({
         icon: cat.icon,
         spent,
         limit,
+        thresholdPercentage,
+        thresholdAmount,
         percentage,
         isOver: limit > 0 && spent > limit,
-        isWarning: limit > 0 && spent >= limit * 0.8 && spent <= limit
+        isWarning: limit > 0 && spent >= thresholdAmount && spent <= limit
       };
     }).filter(item => item.spent > 0 || item.limit > 0);
   }, [categories, expenses, budgets]);
@@ -340,7 +344,7 @@ export const SpendingCharts: React.FC<SpendingChartsProps> = ({
                     </div>
                     <div className="mt-1.5 flex items-center justify-between text-[10px]">
                       <span className={item.isOver ? 'text-[#B55D42] font-semibold' : item.isWarning ? 'text-[#D68C70] font-semibold' : 'text-[#8A8A82]'}>
-                        {item.percentage}% consumed
+                        {item.percentage}% consumed · threshold {item.thresholdPercentage}%
                       </span>
                       {item.isOver ? (
                         <span className="text-[#B55D42] flex items-center gap-0.5 font-medium">

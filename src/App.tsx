@@ -13,13 +13,12 @@ import { CURRENCIES } from './data/defaultData';
 import { Expense, Category, Budget, AiInsightResponse } from './types';
 import { Loader2 } from 'lucide-react';
 import { AuthPage } from './components/AuthPage';
+import { HomePage } from './components/HomePage';
 
 export default function App() {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const saved = localStorage.getItem('aura_auth_session_v1');
-    return saved === 'active';
-  });
+  const [authStep, setAuthStep] = useState<'home' | 'auth'>('home');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   // Theme state
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -49,9 +48,9 @@ export default function App() {
       return { ok: false, message: 'No account matches those details.' };
     }
 
-    localStorage.setItem('aura_auth_session_v1', 'active');
     setUser({ id: match.id, email: match.email, user_metadata: { name: match.name } });
     setIsLoggedIn(true);
+    loadInitialData();
     return { ok: true };
   };
 
@@ -76,9 +75,9 @@ export default function App() {
     };
 
     localStorage.setItem('aura_auth_users_v1', JSON.stringify([...users, newUser]));
-    localStorage.setItem('aura_auth_session_v1', 'active');
     setUser({ id: newUser.id, email: newUser.email, user_metadata: { name: newUser.name } });
     setIsLoggedIn(true);
+    loadInitialData();
     return { ok: true };
   };
 
@@ -133,7 +132,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    DataService.clearDemoDataIfPresent();
+    localStorage.removeItem('ai_expense_tracker_guest_user_v1');
+    localStorage.removeItem('aura_auth_session_v1');
     loadInitialData();
 
     // Listen to Supabase auth state change if enabled
@@ -251,8 +251,8 @@ export default function App() {
     });
   };
 
-  const handleSetBudget = async (categoryId: string, monthlyLimit: number) => {
-    const saved = await DataService.setBudget(categoryId, monthlyLimit, user?.id);
+  const handleSetBudget = async (categoryId: string, monthlyLimit: number, thresholdPercentage: number) => {
+    const saved = await DataService.setBudget(categoryId, monthlyLimit, thresholdPercentage, user?.id);
     setBudgets(prev => {
       const idx = prev.findIndex(b => b.category_id === categoryId);
       if (idx >= 0) {
@@ -266,19 +266,37 @@ export default function App() {
     if (isSupabaseConfigured && supabase) {
       await supabase.auth.signOut();
     }
-    localStorage.removeItem('aura_auth_session_v1');
     setIsLoggedIn(false);
-    DataService.resetToDefaults();
-    loadInitialData();
+    setAuthStep('home');
+    setUser(null);
+    setExpenses([]);
+    setBudgets([]);
+    setInsights(null);
   };
 
   if (!isLoggedIn) {
+    if (authStep === 'home') {
+      return (
+        <HomePage
+          onGetStarted={() => {
+            setAuthMode('signup');
+            setAuthStep('auth');
+          }}
+          onLogin={() => {
+            setAuthMode('login');
+            setAuthStep('auth');
+          }}
+        />
+      );
+    }
+
     return (
       <AuthPage
         mode={authMode}
         onModeChange={setAuthMode}
         onLogin={handleLogin}
         onSignup={handleSignup}
+        onBackToHome={() => setAuthStep('home')}
       />
     );
   }
@@ -295,8 +313,7 @@ export default function App() {
         isDark={isDark}
         onToggleTheme={() => setIsDark(!isDark)}
         onOpenAddExpense={handleOpenAddExpense}
-        onOpenSupabaseModal={() => setIsSupabaseModalOpen(true)}
-        onOpenCategoryManager={() => setIsCategoryModalOpen(true)}
+          onOpenCategoryManager={() => setIsCategoryModalOpen(true)}
         user={user}
         onSignOut={handleSignOut}
       />

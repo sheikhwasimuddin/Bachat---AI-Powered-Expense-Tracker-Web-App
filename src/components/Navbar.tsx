@@ -1,18 +1,14 @@
 import React from 'react';
 import { 
-  Sparkles, 
   Plus, 
-  Database, 
   Moon, 
   Sun, 
   Calendar, 
-  User, 
-  LogOut, 
   Settings,
+  LogOut, 
   ChevronDown
 } from 'lucide-react';
 import { CURRENCIES } from '../data/defaultData';
-import { isSupabaseConfigured } from '../lib/supabase';
 
 interface NavbarProps {
   currentMonth: string; // YYYY-MM
@@ -22,7 +18,6 @@ interface NavbarProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onOpenAddExpense: () => void;
-  onOpenSupabaseModal: () => void;
   onOpenCategoryManager: () => void;
   user: any;
   onSignOut: () => void;
@@ -36,7 +31,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   isDark,
   onToggleTheme,
   onOpenAddExpense,
-  onOpenSupabaseModal,
   onOpenCategoryManager,
   user,
   onSignOut,
@@ -70,11 +64,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-serif-natural font-semibold text-lg tracking-tight text-[#2D2D2A] dark:text-[#F3EFEA]">
-                Aura <span className="font-sans-natural font-bold text-xs px-2 py-0.5 rounded-full bg-[#D68C70]/15 text-[#D68C70] border border-[#D68C70]/30">AI</span>
+                Bachat <span className="font-sans-natural font-bold text-xs px-2 py-0.5 rounded-full bg-[#D68C70]/15 text-[#D68C70] border border-[#D68C70]/30">AI</span>
               </span>
             </div>
             <p className="text-[11px] text-[#8A8A82] dark:text-[#9E9E96] hidden sm:block">
-              Natural Tones Financial Ledger
+              AI-Powered-Expense-Tracker
             </p>
           </div>
         </div>
@@ -116,21 +110,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          
-          {/* Supabase Status / Setup Trigger */}
-          <button
-            onClick={onOpenSupabaseModal}
-            className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition ${
-              isSupabaseConfigured
-                ? 'border-[#7A8471]/40 bg-[#7A8471]/10 text-[#5C6B50] dark:text-[#A4B399] hover:bg-[#7A8471]/20'
-                : 'border-[#D68C70]/40 bg-[#D68C70]/10 text-[#C47D63] dark:text-[#E0A48E] hover:bg-[#D68C70]/20'
-            }`}
-            title={isSupabaseConfigured ? 'Supabase Connected' : 'Running in Local Storage Mode'}
-          >
-            <Database className="w-3.5 h-3.5" />
-            <span>{isSupabaseConfigured ? 'Supabase Live' : 'Supabase Setup'}</span>
-            <span className={`w-2 h-2 rounded-full ${isSupabaseConfigured ? 'bg-[#7A8471]' : 'bg-[#D68C70]'}`} />
-          </button>
 
           {/* Category & Budget Manager button */}
           <button
@@ -179,20 +158,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <div className="px-4 py-2 border-b border-[#E5E0D8] dark:border-[#38332F]">
                   <p className="text-xs font-semibold text-[#2D2D2A] dark:text-[#F3EFEA] truncate font-serif-natural">
-                    {user?.user_metadata?.name || 'Sarah'}
+                    {user?.user_metadata?.name || 'Account'}
                   </p>
                   <p className="text-[11px] text-[#8A8A82] dark:text-[#9E9E96] truncate">
-                    {user?.email || 'demo@aurafinance.ai'}
+                    {user?.email || ''}
                   </p>
                 </div>
 
-                <button
-                  onClick={onOpenSupabaseModal}
-                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#5A5A54] dark:text-[#D4CFCA] hover:bg-[#F7F3F0] dark:hover:bg-[#2B2825] flex items-center gap-2"
-                >
-                  <Database className="w-3.5 h-3.5 text-[#7A8471]" />
-                  Database & Auth Settings
-                </button>
+                <div className="my-1 border-t border-[#E5E0D8] dark:border-[#38332F]" />
 
                 <button
                   onClick={onOpenCategoryManager}
@@ -209,7 +182,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="w-full px-4 py-2 text-left text-xs font-medium text-[#B55D42] hover:bg-[#B55D42]/10 flex items-center gap-2"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  Reset Demo / Sign Out
+                  Sign Out
                 </button>
               </div>
             )}

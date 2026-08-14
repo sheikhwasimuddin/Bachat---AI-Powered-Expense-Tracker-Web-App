@@ -50,16 +50,7 @@ export const SupabaseModal: React.FC<SupabaseModalProps> = ({
 
     try {
       if (!isSupabaseConfigured || !supabase) {
-        // Fallback for guest mode: set local guest user
-        const guestUser = {
-          id: `user-${Date.now()}`,
-          email,
-          user_metadata: { name: name || email.split('@')[0] }
-        };
-        localStorage.setItem('ai_expense_tracker_guest_user_v1', JSON.stringify(guestUser));
-        onAuthSuccess(guestUser);
-        setAuthSuccessMsg(`Signed in as ${guestUser.user_metadata.name} (Local Storage Session).`);
-        setTimeout(() => onClose(), 800);
+        setAuthError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local to use this auth tab.');
         return;
       }
 
@@ -266,10 +257,10 @@ CREATE POLICY "Users can access own budgets" ON public.budgets FOR ALL USING (au
               <div className="p-3.5 rounded-2xl bg-[#F7F3F0] dark:bg-[#1E1C1A] border border-[#E5E0D8] dark:border-[#38332F] flex items-center justify-between">
                 <div>
                   <p className="text-[11px] text-[#8A8A82]">Current Session:</p>
-                  <p className="font-semibold text-[#2D2D2A] dark:text-[#F3EFEA]">{user?.email || 'demo@expensetracker.ai'}</p>
+                  <p className="font-semibold text-[#2D2D2A] dark:text-[#F3EFEA]">{user?.email || 'Not signed in'}</p>
                 </div>
                 <span className="text-[10px] px-2.5 py-1 rounded-lg bg-[#E5E0D8] dark:bg-[#2A2724] text-[#5A5A54] dark:text-[#D4CFCA] font-medium">
-                  {isSupabaseConfigured ? 'Supabase User' : 'Local Guest'}
+                  {isSupabaseConfigured ? 'Supabase User' : 'Not Configured'}
                 </span>
               </div>
 

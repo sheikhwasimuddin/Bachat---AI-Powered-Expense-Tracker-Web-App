@@ -5,9 +5,10 @@ interface AuthPageProps {
   onModeChange: (mode: 'login' | 'signup') => void;
   onLogin: (payload: { email: string; password: string }) => { ok: boolean; message?: string };
   onSignup: (payload: { name: string; email: string; password: string }) => { ok: boolean; message?: string };
+  onBackToHome?: () => void;
 }
 
-export const AuthPage: React.FC<AuthPageProps> = ({ mode, onModeChange, onLogin, onSignup }) => {
+export const AuthPage: React.FC<AuthPageProps> = ({ mode, onModeChange, onLogin, onSignup, onBackToHome }) => {
   const [formMode, setFormMode] = useState<'login' | 'signup'>(mode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -40,6 +41,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onModeChange, onLogin,
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col lg:flex-row">
         <section className="flex flex-1 items-center justify-center bg-[#1f1a17] px-6 py-12 text-[#f5efe8] lg:px-12">
           <div className="max-w-xl space-y-8">
+            {onBackToHome && (
+              <button
+                type="button"
+                onClick={onBackToHome}
+                className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[#efe7df] transition hover:bg-white/20"
+              >
+                Back to home
+              </button>
+            )}
+
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#a9b79f] text-[#1f1a17] shadow-lg shadow-[#a9b79f]/20">
                 <span className="text-lg font-bold">A</span>
