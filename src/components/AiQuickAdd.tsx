@@ -65,7 +65,7 @@ export const AiQuickAdd: React.FC<AiQuickAddProps> = ({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to parse expense with AI assistant');
+        throw new Error(`AI parse request failed (${response.status})`);
       }
 
       const data: AiParsedExpense = await response.json();
