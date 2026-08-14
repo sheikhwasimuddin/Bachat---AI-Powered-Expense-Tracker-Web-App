@@ -108,8 +108,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </select>
         </div>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        {/* Right Actions (Desktop) */}
+        <div className="hidden sm:flex items-center gap-2 sm:gap-3">
 
           {/* Category & Budget Manager button */}
           <button
@@ -188,6 +188,71 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
 
+        </div>
+
+        {/* Right Actions (Mobile) */}
+        <div className="sm:hidden flex items-center">
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-1.5 p-0.5 rounded-full border border-[#E5E0D8] dark:border-[#38332F] hover:ring-2 hover:ring-[#7A8471]/30 transition"
+              aria-label="Mobile profile menu"
+            >
+              <div className="w-8 h-8 rounded-full bg-[#D68C70]/20 text-[#D68C70] border border-[#D68C70]/40 flex items-center justify-center text-xs font-bold font-serif-natural">
+                {user?.user_metadata?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'S'}
+              </div>
+            </button>
+
+            {showUserMenu && (
+              <div 
+                className="absolute right-0 mt-2 w-56 rounded-2xl border border-[#E5E0D8] dark:border-[#38332F] bg-[#FDFCFB] dark:bg-[#23211F] shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-100"
+                onClick={() => setShowUserMenu(false)}
+              >
+                <div className="px-4 py-2 border-b border-[#E5E0D8] dark:border-[#38332F]">
+                  <p className="text-xs font-semibold text-[#2D2D2A] dark:text-[#F3EFEA] truncate font-serif-natural">
+                    {user?.user_metadata?.name || 'Account'}
+                  </p>
+                  <p className="text-[11px] text-[#8A8A82] dark:text-[#9E9E96] truncate">
+                    {user?.email || ''}
+                  </p>
+                </div>
+
+                <button
+                  onClick={onOpenAddExpense}
+                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#5A5A54] dark:text-[#D4CFCA] hover:bg-[#F7F3F0] dark:hover:bg-[#2B2825] flex items-center gap-2"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#7A8471]" />
+                  Add Expense
+                </button>
+
+                <button
+                  onClick={onOpenCategoryManager}
+                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#5A5A54] dark:text-[#D4CFCA] hover:bg-[#F7F3F0] dark:hover:bg-[#2B2825] flex items-center gap-2"
+                >
+                  <Settings className="w-3.5 h-3.5 text-[#8A8A82]" />
+                  Category Limits & Setup
+                </button>
+
+                <button
+                  onClick={onToggleTheme}
+                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#5A5A54] dark:text-[#D4CFCA] hover:bg-[#F7F3F0] dark:hover:bg-[#2B2825] flex items-center gap-2"
+                >
+                  {isDark ? <Sun className="w-3.5 h-3.5 text-[#D68C70]" /> : <Moon className="w-3.5 h-3.5 text-[#7A8471]" />}
+                  {isDark ? 'Light Mode' : 'Dark Mode'}
+                </button>
+
+                <div className="my-1 border-t border-[#E5E0D8] dark:border-[#38332F]" />
+
+                <button
+                  onClick={onSignOut}
+                  className="w-full px-4 py-2 text-left text-xs font-medium text-[#B55D42] hover:bg-[#B55D42]/10 flex items-center gap-2"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
       </div>
