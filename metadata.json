@@ -1,0 +1,6 @@
+{
+  "name": "AI-Powered Expense Tracker",
+  "description": "Full-stack smart expense tracker with natural language quick-add, AI spending insights via Gemini 3.7 Flash, interactive charts, budget limits, category management, and Supabase integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
