@@ -10,19 +10,34 @@ dotenv.config();
 const app = express();
 const DEFAULT_PORT = Number(process.env.PORT || 3000);
 
-const configuredAppUrl = (process.env.APP_URL || '').trim();
-const normalizedAppUrl = configuredAppUrl
-  ? configuredAppUrl.startsWith('http')
-    ? configuredAppUrl
-    : `https://${configuredAppUrl}`
-  : '';
+function normalizeOrigin(input: string): string {
+  const raw = (input || '').trim();
+  if (!raw) return '';
+
+  const withProtocol = raw.startsWith('http://') || raw.startsWith('https://') ? raw : `https://${raw}`;
+  try {
+    const parsed = new URL(withProtocol);
+    return parsed.origin;
+  } catch {
+    return withProtocol.replace(/\/$/, '');
+  }
+}
+
+const configuredAppUrl = normalizeOrigin(process.env.APP_URL || '');
+const configuredFrontendUrl = normalizeOrigin(process.env.FRONTEND_URL || '');
+const configuredOriginsList = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((item) => normalizeOrigin(item))
+  .filter(Boolean);
 
 const allowedOrigins = new Set([
-  normalizedAppUrl,
+  configuredAppUrl,
+  configuredFrontendUrl,
+  ...configuredOriginsList,
   'http://localhost:3000',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-].filter(Boolean));
+]);
 
 function startServer(portNumber: number) {
   const server = app.listen(portNumber, '0.0.0.0', () => {
@@ -44,7 +59,8 @@ function startServer(portNumber: number) {
 app.use(express.json());
 
 app.use((req, res, next) => {
-  const requestOrigin = req.headers.origin as string | undefined;
+  const requestOriginRaw = req.headers.origin as string | undefined;
+  const requestOrigin = normalizeOrigin(requestOriginRaw || '');
 
   if (requestOrigin && allowedOrigins.has(requestOrigin)) {
     res.header('Access-Control-Allow-Origin', requestOrigin);

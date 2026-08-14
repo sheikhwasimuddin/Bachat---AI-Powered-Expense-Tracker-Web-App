@@ -4,8 +4,11 @@ import { DEFAULT_CATEGORIES, DEFAULT_EXPENSES, DEFAULT_BUDGETS } from '../data/d
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseEnabledFlag = (import.meta.env.VITE_SUPABASE_ENABLED || 'true').toLowerCase();
+const isSupabaseExplicitlyEnabled = !['0', 'false', 'off', 'no'].includes(supabaseEnabledFlag);
 
 export const isSupabaseConfigured = Boolean(
+  isSupabaseExplicitlyEnabled &&
   supabaseUrl && 
   supabaseAnonKey && 
   supabaseUrl.startsWith('https://') &&
